@@ -72,6 +72,7 @@
 }
 
 - (void)initPhysicsWorld {
+//    self.physicsBody = [SKPhysicsBody bodyWithEdgeLoopFromRect:CGRectMake(self.frame.origin.x, self.frame.origin.y, self.size.width, self.size.height)];
     self.physicsWorld.contactDelegate = self;
     self.physicsWorld.gravity = CGVectorMake(0, 0);
 }
@@ -174,7 +175,21 @@
     [self createFoePlane];
     [self createParachute];
     [self scrollBackground];
+//    [self changeParachuteBody];
+
 }
+
+- (void)changeParachuteBody {
+    
+    [self enumerateChildNodesWithName:@"parachute" usingBlock:^(SKNode * _Nonnull node, BOOL * _Nonnull stop) {
+        SKParachute *parachute = (SKParachute *)node;
+        [parachute.physicsBody applyImpulse:CGVectorMake(2, -0.1) atPoint:parachute.position];
+    }];
+    
+    
+}
+
+
 //创建敌机
 - (void)createFoePlane {
     _smallPlaneTime++;
@@ -264,6 +279,9 @@
                 break;
         }
         parachute.zPosition = 1;
+        parachute.name = @"parachute";
+//        parachute
+        [parachute.physicsBody applyAngularImpulse:30];
         parachute.physicsBody.categoryBitMask = SKRoleCategoryParachute;
         parachute.physicsBody.collisionBitMask = SKRoleCategoryPlayerPlane;
         parachute.physicsBody.contactTestBitMask = SKRoleCategoryPlayerPlane;
@@ -275,7 +293,8 @@
     if (_flyBulletTime >= 700) {
         float speed = 10;
         SKParachute *parachute = createParachute(SKParachuteTypeBullet);
-        SKAction *action = [SKAction moveBy:CGVectorMake(20,20) duration:2];
+        SKAction *action = [SKAction moveBy:CGVectorMake(20,-40) duration:2];
+        action.timingMode = SKActionTimingEaseInEaseOut;
         [parachute runAction:[SKAction sequence:@[action,[SKAction moveToY:0 duration:speed],[SKAction removeFromParent]]]];
         [self addChild:parachute];
         _flyBulletTime = 0;
@@ -284,6 +303,7 @@
         float speed = 10;
         SKParachute *parachute = createParachute(SKParachuteTypeBomb);
         SKAction *action = [SKAction moveBy:CGVectorMake(20,-40) duration:2];
+        action.timingMode = SKActionTimingEaseInEaseOut;
         [parachute runAction:[SKAction sequence:@[action,[SKAction moveToY:0 duration:speed],[SKAction removeFromParent]]]];
         [self addChild:parachute];
         _flyBombTime = 0;
@@ -360,7 +380,6 @@
         switch (sprite.type) {
             case SKFoePlaneTypeBig:
             {
-                
                 sprite.hp--;
                 hitAction = _bigFoePlaneHitAction;
                 blowupAction = _bigFoePlaneBlowupAction;
