@@ -16,6 +16,12 @@
 @property (nonatomic,strong)UILabel *lb_score;
 @property (nonatomic,strong)UIButton *btn_strat;
 
+@property (nonatomic,strong)SKMainScene *scene;
+
+@property (nonatomic,strong)UIButton *leftBtn;
+
+@property (nonatomic,strong) UIButton *button1;
+@property (nonatomic,strong) UIButton *button2;
 @end
 
 @implementation GameViewController
@@ -82,25 +88,57 @@
     
 }
 
+- (SKMainScene *)scene {
+    if (!_scene) {
+        _scene = [SKMainScene sceneWithSize:self.skView.bounds.size];
+        _scene.scaleMode = SKSceneScaleModeAspectFill;
+    }
+    return _scene;
+}
+
 - (void)initAll {
     [self.view addSubview:self.skView];
     
     //Create and configure the scene
-    SKScene *scene = [SKMainScene sceneWithSize:self.skView.bounds.size];
-    scene.scaleMode = SKSceneScaleModeAspectFill;
-    
-    [self.skView presentScene:scene];
+    [self.skView presentScene:self.scene];
     
     UIImage *image = [UIImage imageNamed:@"BurstAircraftPause"];
-    UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
-    btn.frame = CGRectMake(10, 25, image.size.width,image.size.height);
-    [btn setBackgroundImage:image forState:UIControlStateNormal];
-    [btn addTarget:self action:@selector(pause) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:btn];
+    
+    self.leftBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.leftBtn.frame = CGRectMake(10, 25, image.size.width,image.size.height);
+    [self.leftBtn setBackgroundImage:image forState:UIControlStateNormal];
+    [self.leftBtn addTarget:self action:@selector(isPause:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:self.leftBtn];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(gameOver) name:@"gameOverNotification" object:nil];
     
+    UIView *pauseView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.frame), 200)];
     
+    self.button1 = [[UIButton alloc]init];
+    [self.button1 setFrame:CGRectMake(CGRectGetWidth(self.view.frame) / 2 - 100,50,200,30)];
+    [self.button1 setTitle:@"继续" forState:UIControlStateNormal];
+    [self.button1 setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [self.button1.layer setBorderWidth:2.0];
+    [self.button1.layer setCornerRadius:15.0];
+    [self.button1.layer setBorderColor:[[UIColor grayColor] CGColor]];
+    [self.button1 addTarget:self action:@selector(continueGame:) forControlEvents:UIControlEventTouchUpInside];
+    self.button1.hidden = YES;
+    [pauseView addSubview:self.button1];
+    
+    self.button2 = [[UIButton alloc]init];
+    [self.button2 setFrame:CGRectMake(CGRectGetWidth(self.view.frame) / 2 - 100,100,200,30)];
+    [self.button2 setTitle:@"重新开始" forState:UIControlStateNormal];
+    [self.button2 setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [self.button2.layer setBorderWidth:2.0];
+    [self.button2.layer setCornerRadius:15.0];
+    [self.button2.layer setBorderColor:[[UIColor grayColor] CGColor]];
+    [self.button2 addTarget:self action:@selector(restart:) forControlEvents:UIControlEventTouchUpInside];
+    self.button2.hidden = YES;
+    [pauseView addSubview:self.button2];
+    
+    pauseView.center = self.view.center;
+    
+    [self.view addSubview:pauseView];
 }
 
 - (void)gameOver{
@@ -122,47 +160,34 @@
     [self.view addSubview:backgroundView];
 }
 
-- (void)pause{
+- (void)isPause:(UIButton *)btn {
+    self.leftBtn.enabled = NO;
     
     ((SKView *)self.view).paused = YES;
     
-    UIView *pauseView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.frame), 200)];
+    self.button1.hidden = NO;
+    self.button2.hidden = NO;
     
-    UIButton *button1 = [[UIButton alloc]init];
-    [button1 setFrame:CGRectMake(CGRectGetWidth(self.view.frame) / 2 - 100,50,200,30)];
-    [button1 setTitle:@"继续" forState:UIControlStateNormal];
-    [button1 setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [button1.layer setBorderWidth:2.0];
-    [button1.layer setCornerRadius:15.0];
-    [button1.layer setBorderColor:[[UIColor grayColor] CGColor]];
-    [button1 addTarget:self action:@selector(continueGame:) forControlEvents:UIControlEventTouchUpInside];
-    [pauseView addSubview:button1];
+    self.scene.paused = YES;
     
-    UIButton *button2 = [[UIButton alloc]init];
-    [button2 setFrame:CGRectMake(CGRectGetWidth(self.view.frame) / 2 - 100,100,200,30)];
-    [button2 setTitle:@"重新开始" forState:UIControlStateNormal];
-    [button2 setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [button2.layer setBorderWidth:2.0];
-    [button2.layer setCornerRadius:15.0];
-    [button2.layer setBorderColor:[[UIColor grayColor] CGColor]];
-    [button2 addTarget:self action:@selector(restart:) forControlEvents:UIControlEventTouchUpInside];
-    [pauseView addSubview:button2];
     
-    pauseView.center = self.view.center;
-    
-    [self.view addSubview:pauseView];
     
 }
 
 - (void)restart:(UIButton *)button{
     [button.superview removeFromSuperview];
-    ((SKView *)self.view).paused = NO;
+//    ((SKView *)self.view).paused = NO;
+    self.scene.paused =NO;
+    self.leftBtn.enabled = YES;
+    
     [[NSNotificationCenter defaultCenter]postNotificationName:@"restartNotification" object:nil];
 }
 
 - (void)continueGame:(UIButton *)button{
     [button.superview removeFromSuperview];
-    ((SKView *)self.view).paused = NO;
+//    ((SKView *)self.view).paused = NO;
+    self.scene.paused =NO;
+    self.leftBtn.enabled = YES;
 }
 
 //-(void)start:(UIButton *)btn

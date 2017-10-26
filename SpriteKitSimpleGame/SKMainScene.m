@@ -483,6 +483,7 @@
 }
 
 - (void)bombAllFoePlant {
+    
     [self enumerateChildNodesWithName:@"foePlane" usingBlock:^(SKNode * _Nonnull node, BOOL * _Nonnull stop) {
         
         if ([node isKindOfClass:[SKFoePlane class]]) {
@@ -553,7 +554,6 @@
                 _bombLabel = nil;
 
             }
-            
         }
     }
 }
@@ -579,7 +579,7 @@
             location.y = (_playerPlane.size.height / 2);
         }
         
-        SKAction *action = [SKAction moveTo:CGPointMake(location.x, location.y) duration:0];
+        SKAction *action = [SKAction moveTo:CGPointMake(location.x, location.y) duration:0.1];
         
         [_playerPlane runAction:action];
     }
